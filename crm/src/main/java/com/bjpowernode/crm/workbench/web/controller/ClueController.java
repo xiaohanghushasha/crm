@@ -6,6 +6,7 @@ import com.bjpowernode.crm.settings.service.UserService;
 import com.bjpowernode.crm.utils.*;
 import com.bjpowernode.crm.workbench.domain.Activity;
 import com.bjpowernode.crm.workbench.domain.Clue;
+import com.bjpowernode.crm.workbench.domain.Tran;
 import com.bjpowernode.crm.workbench.service.ActivityService;
 import com.bjpowernode.crm.workbench.service.ClueService;
 import com.bjpowernode.crm.workbench.service.Impl.ActivityServiceImpl;
@@ -37,16 +38,75 @@ public class ClueController extends HttpServlet {
             unbund(request, response);
         } else if ("/workbench/clue/getActivityListByNameAndNotByClueId.do".equals(path)) {
             getActivityListByNameAndNotByClueId(request, response);
+        } else if ("/workbench/clue/bund.do".equals(path)) {
+            bund(request, response);
+        } else if ("/workbench/clue/getActivityListByName.do".equals(path)) {
+            getActivityListByName(request, response);
+        } else if ("/workbench/clue/convert.do".equals(path)) {
+            convert(request,response);
         }
+    }
+
+    private void convert(HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        String clueId = request.getParameter("clueId");
+        String createBy = ((User)request.getSession().getAttribute("user")).getName();
+        //接受是否需要创建交易的标记
+        String flag = request.getParameter("flag");
+
+        Tran t = null;
+        //如果需要创建交易
+        if ("a".equals(flag)){
+
+            t = new Tran();
+            //接受交易表单中的参数
+            String money = request.getParameter("money");
+            String name = request.getParameter("name");
+            String expectedDate = request.getParameter("expectedDate");
+            String stage = request.getParameter("stage");
+            String activityId = request.getParameter("activityId");
+            String id = UUIDUtil.getUUID();
+            String createTime = DateTimeUtil.getSysTime();
+
+            t.setId(id);
+            t.setActivityId(activityId);
+            t.setCreateBy(createBy);
+            t.setCreateTime(createTime);
+            t.setMoney(money);
+            t.setName(name);
+            t.setExpectedDate(expectedDate);
+            t.setStage(stage);
+
+        }
+        ClueService cs = (ClueService) ServiceFactory.getService(new ClueServiceImpl());
+        boolean flag1 = cs.convert(clueId,t,createBy);
+        if (flag1){
+            response.sendRedirect(request.getContextPath()+"/workbench/clue/index.jsp");
+        }
+    }
+
+    private void bund(HttpServletRequest request, HttpServletResponse response) {
+        String cid = request.getParameter("cid");
+        String aids[] = request.getParameterValues("aid");
+        ClueService cs = (ClueService) ServiceFactory.getService(new ClueServiceImpl());
+        boolean flag = cs.bund(cid, aids);
+        PrintJson.printJsonFlag(response, flag);
+    }
+
+    private void getActivityListByName(HttpServletRequest request, HttpServletResponse response) {
+        String anmae = request.getParameter("aname");
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+        List<Activity> aList = as.getActivityListByName(anmae);
+        PrintJson.printJsonObj(response, aList);
     }
 
     private void getActivityListByNameAndNotByClueId(HttpServletRequest request, HttpServletResponse response) {
         System.out.println("查询市场活动列表+（根据名称模糊查询--排除掉已关联线索的列表）");
-        String anmae = request.getParameter("aname");
+        String aname = request.getParameter("aname");
         String clueId = request.getParameter("clueId");
 
         Map<String, String> map = new HashMap<String, String>();
-        map.put("anmae", anmae);
+        map.put("aname", aname);
         map.put("clueId", clueId);
 
         ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());

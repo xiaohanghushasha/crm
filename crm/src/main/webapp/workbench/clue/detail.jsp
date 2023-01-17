@@ -68,48 +68,68 @@
                             "clueId": "${c.id}"
                         },
                         dataType: "json",
-                        type: "",
+                        type: "get",
                         success: function (data) {
                             var html = "";
-                               /*
-                                  data:
-                                  [{市场活动1}，{2}，{3}]
-                                */
-                            $.each(data,function (i,n) {
+                            /*
+                               data:
+                               [{市场活动1}，{2}，{3}]
+                             */
+                            $.each(data, function (i, n) {
                                 html += '<tr>';
-                                html += '<td><input type="checkbox" name="xz" value="'+n.id+'"/></td>';
-                                html += '<td>'+n.name+'</td>';
-                                html += '<td>'+n.startDate+'</td>';
-                                html += '<td>'+n.endDate+'</td>';
-                                html += '<td>'+n.owner+'</td>';
+                                html += '<td><input type="checkbox" name="xz" value="' + n.id + '"/></td>';
+                                html += '<td>' + n.name + '</td>';
+                                html += '<td>' + n.startDate + '</td>';
+                                html += '<td>' + n.endDate + '</td>';
+                                html += '<td>' + n.owner + '</td>';
                                 html += '</tr>';
                             })
-                            $("#activityByClueIdBody").html(html);
+                            $("#atcBody").html(html);
                         }
                     })
 
                     //展现完列表后，将默认的回车行为禁用掉
                     return false;
                 }
-
             })
-            
+
+
             //为关联按钮绑定事件
             $("#bundBtn").click(function () {
                 var $xz = $("input[name=xz]:checked");
-                if ($xz.length==0){
+                if ($xz.length == 0) {
                     alert("请选择需要关联的市场活动！")
-                }else {
+                } else {
                     //1条或多条
                     //workbench/clue/bund.do?cid=xxx&aid=xxx&aid=xxx...
                     var param = "cid=${c.id}&";
-                    for (var i=0;i<$xz.length;i++){
-                        param += "aid="+$($xz[i]).val();
-                        if (i<$xz.length-1){
+                    for (var i = 0; i < $xz.length; i++) {
+                        param += "aid=" + $($xz[i]).val();
+                        if (i < $xz.length - 1) {
                             param += "&";
                         }
                     }
-                    alert(param)
+                    //alert(param)
+                    $.ajax({
+                        url: "workbench/clue/bund.do",
+                        data: param,
+                        dataType: "json",
+                        Type: "post",
+                        success: function (data) {
+                            if (data.success) {
+                                //关联成功，刷新
+                                showActivityList();
+                                //清除搜索框中的文字
+
+                                //清除勾选的复选框
+
+                                //关闭模态窗口
+                                $("#bundModal").modal("hide");
+                            } else {
+                                alert("关联市场活动失败！")
+                            }
+                        }
+                    })
                 }
             })
 
@@ -197,21 +217,21 @@
                         <td></td>
                     </tr>
                     </thead>
-                    <tbody id="activityByClueIdBody">
-<%--                    <tr>--%>
-<%--                        <td><input type="checkbox"/></td>--%>
-<%--                        <td>发传单</td>--%>
-<%--                        <td>2020-10-10</td>--%>
-<%--                        <td>2020-10-20</td>--%>
-<%--                        <td>zhangsan</td>--%>
-<%--                    </tr>--%>
-<%--                    <tr>--%>
-<%--                        <td><input type="checkbox"/></td>--%>
-<%--                        <td>发传单</td>--%>
-<%--                        <td>2020-10-10</td>--%>
-<%--                        <td>2020-10-20</td>--%>
-<%--                        <td>zhangsan</td>--%>
-<%--                    </tr>--%>
+                    <tbody id="atcBody">
+                    <%--                    <tr>--%>
+                    <%--                        <td><input type="checkbox"/></td>--%>
+                    <%--                        <td>发传单</td>--%>
+                    <%--                        <td>2020-10-10</td>--%>
+                    <%--                        <td>2020-10-20</td>--%>
+                    <%--                        <td>zhangsan</td>--%>
+                    <%--                    </tr>--%>
+                    <%--                    <tr>--%>
+                    <%--                        <td><input type="checkbox"/></td>--%>
+                    <%--                        <td>发传单</td>--%>
+                    <%--                        <td>2020-10-10</td>--%>
+                    <%--                        <td>2020-10-20</td>--%>
+                    <%--                        <td>zhangsan</td>--%>
+                    <%--                    </tr>--%>
                     </tbody>
                 </table>
             </div>
@@ -395,7 +415,8 @@
         <h3>${c.fullname}${c.appellation} <small>${c.company}</small></h3>
     </div>
     <div style="position: relative; height: 50px; width: 500px;  top: -72px; left: 700px;">
-        <button type="button" class="btn btn-default" onclick="window.location.href='workbench/clue/convert.jsp?id=${c.id}&fullname=${c.fullname}&appellation=${c.appellation}&company=${c.company}&owner=${c.owner}';"><span
+        <button type="button" class="btn btn-default"
+                onclick="window.location.href='workbench/clue/convert.jsp?id=${c.id}&fullname=${c.fullname}&appellation=${c.appellation}&company=${c.company}&owner=${c.owner}';"><span
                 class="glyphicon glyphicon-retweet"></span> 转换
         </button>
         <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editClueModal"><span
