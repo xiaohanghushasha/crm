@@ -5,6 +5,13 @@
 
 <mapper namespace="com.bjpowernode.crm.workbench.dao.TranHistoryDao">
 
+
+    <select id="getHistoryListByTranId" resultType="TranHistory">
+
+        select * from tbl_tran_history where tranId=#{tranId}
+
+    </select>
+
     <insert id="save">
 
         insert into tbl_tran_history(
